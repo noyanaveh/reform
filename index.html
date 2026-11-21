@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>REFORM version 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@400&family=Heebo:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* 19.11: the app font from Noya's folder (AfacaFlux). Regular 400 is not in the folder yet, so 400 still comes from Google Fonts. */
+@font-face{font-family:'Afacad Flux';src:url(fonts/AfacadFlux-ExtraLight.ttf) format('truetype');font-weight:200;font-style:normal;font-display:block}
+@font-face{font-family:'Afacad Flux';src:url(fonts/AfacadFlux-Light.ttf) format('truetype');font-weight:300;font-style:normal;font-display:block}
+@font-face{font-family:'Afacad Flux';src:url(fonts/AfacadFlux-Medium.ttf) format('truetype');font-weight:500;font-style:normal;font-display:block}
+@font-face{font-family:'Afacad Flux';src:url(fonts/AfacadFlux-Bold.ttf) format('truetype');font-weight:700;font-style:normal;font-display:block}
+@font-face{font-family:'Afacad Flux';src:url(fonts/AfacadFlux-ExtraBold.ttf) format('truetype');font-weight:800;font-style:normal;font-display:block}
+@font-face{font-family:'Afacad Flux';src:url(fonts/AfacadFlux-Black.ttf) format('truetype');font-weight:900;font-style:normal;font-display:block}
+:root{--bg:#F1F1F1;--ink:#000;--grey:#999;--blue:#3E7FBF;--sun:#F5C400;--hot:#CD5341;--font:'Afacad Flux',system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#E4E4E4;font-family:'Heebo',system-ui,sans-serif;color:#111;overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* ---------- layout: phone + panel, the phone never covers the controls ---------- */
+.wrap{height:100%;display:flex;align-items:center;justify-content:center;gap:40px;padding:24px}
+.devOuter{position:relative;flex:none}
+.device{position:relative;border-radius:58px;box-shadow:0 0 0 11px #121212,0 0 0 12.5px #3b3b3b,0 0 0 13px #0a0a0a,0 34px 80px rgba(0,0,0,.28);overflow:hidden;background:var(--bg)}
+.sb{position:absolute;width:4px;background:#2b2b2b;border-radius:2px}
+.sb.l{left:-17px;border-radius:2px 0 0 2px}.sb.r{right:-17px;border-radius:0 2px 2px 0}
+.island{position:absolute;left:134.5px;top:11px;width:124px;height:36px;border-radius:20px;background:#000;z-index:70;pointer-events:none}
+.phone{position:absolute;left:0;top:0;width:393px;height:852px;transform-origin:0 0;overflow:hidden;background:var(--bg);font-family:var(--font);color:var(--ink);user-select:none;-webkit-user-select:none;touch-action:none}
+.panel{direction:rtl;width:380px;max-height:100%;overflow:auto;background:#fff;border-radius:18px;padding:22px 22px 28px;box-shadow:0 10px 40px rgba(0,0,0,.08);flex:none}
+.panel h1{font-family:'Afacad Flux',sans-serif;font-weight:500;font-size:26px;letter-spacing:.14em;direction:ltr;text-align:right}
+.panel .sub{font-size:13px;color:#777;margin-top:4px;line-height:1.5}
+.panel h2{font-size:13px;font-weight:500;letter-spacing:.04em;margin:22px 0 10px;padding-top:16px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+.panel h2 small{font-weight:300;color:#999;font-size:11px}
+.jump{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.jump button,.pbtn{font-size:12px;padding:8px 6px;border:1px solid #ddd;border-radius:9px;text-align:center;line-height:1.25}
+.jump button:hover,.pbtn:hover{border-color:#000}
+.jump button.now{background:#000;color:#fff;border-color:#000}
+.jump button i{display:block;font-style:normal;font-size:10px;color:#999;margin-top:1px}
+.jump button.now i{color:#bbb}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.ctl{margin:10px 0}
+.ctl .lab{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px}
+.ctl .lab span{color:#888;direction:ltr;font-variant-numeric:tabular-nums}
+.ctl input[type=range]{width:100%;accent-color:#000;direction:ltr}
+.vis{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;font-size:12.5px;margin:4px 0}
+.vis input[type=range]{width:100%;accent-color:#000;direction:ltr}
+.vis span.v{direction:ltr;color:#888;min-width:34px;font-variant-numeric:tabular-nums}
+.seg{display:flex;border:1px solid #ddd;border-radius:9px;overflow:hidden}
+.seg button{flex:1;font-size:12px;padding:8px 4px}
+.seg button[aria-pressed=true]{background:#000;color:#fff}
+.note{font-size:11.5px;color:#999;line-height:1.5;margin-top:6px}
+.edSel{display:none}.edBox.on .edSel{display:block}
+#edOn[aria-pressed=true]{background:#000;color:#fff;border-color:#000}
+.mi.edSel1>div{outline:2px dashed #3E7FBF;outline-offset:4px}
+.editing .mi{cursor:grab}.editing .mi.edDrag{cursor:grabbing}
+.tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:99px;background:#f2f2f2;color:#777;margin-inline-start:6px}
+#status{font-size:12px;color:#3E7FBF;margin-top:8px;min-height:16px}
+.fab{display:none}
+/* a real phone: the app fills the screen, the panel is a sheet */
+body.phoneMode{background:var(--bg)}
+.phoneMode .wrap{padding:0;gap:0;display:block}
+.phoneMode .device{border-radius:0;box-shadow:none;margin:0 auto}
+.phoneMode .sb,.phoneMode .phone .island{display:none}
+.phoneMode .panel{position:fixed;left:0;right:0;bottom:0;width:auto;max-height:72vh;border-radius:18px 18px 0 0;transform:translateY(105%);transition:transform .45s cubic-bezier(.22,1,.36,1);z-index:50;box-shadow:0 -10px 40px rgba(0,0,0,.18);padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+.phoneMode .panel.open{transform:none}
+.phoneMode .fab{display:grid;place-items:center;position:fixed;z-index:60;right:12px;top:calc(env(safe-area-inset-top) + 50px);width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.08);backdrop-filter:blur(8px)}
+.phoneMode .phone .sbar{visibility:hidden}
+body:not(.phoneMode) #fitBox{display:none}
+body.realSize{overflow-y:auto;overflow-x:hidden;height:auto}
+.realSize .phone{touch-action:pan-y}
+.realSize .wrap{height:auto}
+/* a narrow window (like the preview inside Claude): the iPhone on top, the panel under it — the phone never covers the controls */
+body.stackMode{overflow:auto}
+.stackMode .wrap{height:auto;min-height:100%;flex-direction:column;justify-content:flex-start;gap:28px;padding:28px 16px 40px}
+.stackMode .panel{width:100%;max-width:520px;max-height:none}
+
+/* ---------- inside the phone ---------- */
+.screen{position:absolute;inset:0}
+.hide{display:none!important}
+.splash{position:absolute;inset:0;z-index:38;background:var(--bg);overflow:hidden}   /* 21.11: splash M2 (approved) */
+.splash.hide{display:none}
+.spfx{position:absolute;left:0;top:0;width:393px;height:852px;overflow:visible}
+.splogo{position:absolute;left:121.1px;top:410.63px;width:150.8px;height:30.74px;overflow:visible}
+.sbar{position:absolute;left:0;top:0;width:393px;height:47px;z-index:40;pointer-events:none}
+.sbar b{position:absolute;left:42px;top:16px;font:600 15px/1 -apple-system,system-ui,sans-serif;letter-spacing:-.01em}
+.sbar svg{position:absolute;right:23px;top:19px}
+.cap{font-size:16px;letter-spacing:.17em;line-height:21px;text-transform:uppercase;white-space:nowrap}
+
+/* today */
+#vis{position:absolute;left:0;top:0;width:393px;height:852px;overflow:visible;pointer-events:none;transition:opacity .35s ease}
+.hdr{position:absolute;left:29px;top:98px;width:335px}
+.temp{font-size:48px;line-height:64px;letter-spacing:0}
+.meta{display:flex;justify-content:space-between;margin-left:calc(var(--g,31px) - 29px)}
+.hdr .meta{margin-right:calc(var(--g,31px) - 29px - 2.72px)}
+.reveal{position:absolute;left:196.5px;top:483px;height:34px;padding:0 20px 0 22px;transform:translateX(-50%);border:1px solid #000;border-radius:999px;font-weight:500;font-size:12px;line-height:32px;letter-spacing:.2em;white-space:nowrap;transition:background .2s ease-out,color .2s ease-out}
+.reveal.press{background:#000;color:#fff;transition:background 90ms ease-out,color 90ms ease-out}
+.daysWrap{position:absolute;left:0;top:0;width:393px;height:852px;pointer-events:none}
+.days{position:absolute;left:0;top:0;width:393px;pointer-events:none}
+.day{position:absolute;top:605px;height:27px;padding:4px;font-size:14px;letter-spacing:.17em;line-height:19px;color:var(--grey);pointer-events:auto;transition:color .3s}
+.day.on{color:#000}
+.ind{position:absolute;top:634px;width:24px;height:3px;background:var(--blue);transition:left .45s cubic-bezier(.65,0,.25,1)}
+.chev{position:absolute;top:636px;width:23px;height:20px;pointer-events:auto;display:grid;place-items:center;transition:left .45s cubic-bezier(.65,0,.25,1)}
+.chev svg{transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+.graph{position:absolute;left:0;top:0;width:393px;height:852px;pointer-events:none;overflow:visible}
+.graph .hit{pointer-events:auto;cursor:ew-resize}
+.gtxt{font-family:var(--font)}
+.ghour{font-family:var(--font);fill:#999}
+
+/* catch */
+.catch{position:absolute;left:0;top:0;width:70px;height:83.58px;border-radius:31.97px;background:#fff;transform-origin:35px 41.79px;z-index:20;cursor:pointer;overflow:hidden;will-change:transform}
+.catch .plus{position:absolute;left:10.1px;top:38.5px;transform:rotate(-21.7deg)}
+.catch .cam{position:absolute;left:26px;top:47px;opacity:0}
+.catch .arch{position:absolute;left:0;top:0;overflow:visible}
+.catch .arch text{font-family:var(--font);font-size:9.6px;letter-spacing:.06em;fill:#999}
+.catch{touch-action:none}
+.catch video,.catch img.shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0}
+
+/* camera + new memory */
+.vf{position:absolute;left:29px;top:120px;width:335px;height:400px;border-radius:153px;overflow:hidden;background:linear-gradient(#E4E4E2,#CFCFCC)}
+.vf video,.vf img{width:100%;height:100%;object-fit:cover;display:block}
+.vf .mirror{transform:scaleX(-1)}
+.fadeUI{transition:opacity .35s ease}
+.x14{position:absolute;left:23px;top:64px;width:26px;height:26px;display:grid;place-items:center}
+.camTop{position:absolute;right:30px;top:68px;font-size:12px;letter-spacing:.17em;line-height:16px}
+.camHint{position:absolute;left:0;width:393px;top:632px;text-align:center;font-size:11px;letter-spacing:.17em;color:#999}
+.shutter{position:absolute;left:155px;top:690px;width:84px;height:84px;border-radius:50%;border:1px solid #000;display:grid;place-items:center}
+.shutter i{width:66px;height:66px;border-radius:50%;background:#000;transition:transform .12s ease-out}
+.shutter:active i{transform:scale(.88)}
+.camAlt{position:absolute;left:0;width:393px;top:536px;text-align:center;font-size:11px;letter-spacing:.06em;color:#999}
+.camAlt label{text-decoration:underline;cursor:pointer;color:#000;margin:0 4px}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:45}
+.close32{position:absolute;left:21px;top:56px;width:32px;height:32px}
+.close32:before,.close32:after{content:"";position:absolute;left:8px;top:15px;width:16px;height:2px;background:#000;transform:rotate(45deg)}
+.close32:after{transform:rotate(-45deg)}
+.moodTitle{position:absolute;left:29px;top:559px;font-size:14px;font-weight:500;letter-spacing:.12em;line-height:18px}
+.mood{position:absolute;top:592px;width:40px;height:62px;display:flex;flex-direction:column;align-items:center;padding:0;overflow:visible}
+.mood svg{display:block;overflow:visible}
+.mood b{margin-top:10px;font-weight:500;font-size:11.14px;letter-spacing:.2em;line-height:10px;white-space:nowrap;padding-left:.2em}   /* 20.11: the trailing letter-spacing balanced, so the word is truly centred */
+.stamp{position:absolute;left:0;top:0;width:56px;height:56px;z-index:12;cursor:pointer;display:grid;place-items:center;filter:drop-shadow(0 4px 6px rgba(0,0,0,.18))}
+.noteF{position:absolute;left:29px;top:559px;width:335px;height:30px}
+.noteF input{width:100%;border:0;background:none;outline:0;font:15px/21px var(--font);color:#000;padding:0;letter-spacing:0}
+.noteF input::placeholder{color:#999}
+.noteF i{position:absolute;left:0;top:29px;width:335px;height:1px;background:#000;transform-origin:0 0}
+.btn{position:absolute;left:29px;top:740px;width:335px;height:52px;border:1px solid #000;border-radius:999px;font-weight:500;font-size:14px;letter-spacing:.2em;transition:background .2s ease-out,color .2s ease-out}
+.btn.press{background:#000;color:#fff;transition:background 90ms ease-out,color 90ms ease-out}
+
+/* bottom nav */
+.nav{position:absolute;left:0;top:768px;width:393px;height:84px;z-index:30;background:var(--bg)}
+.nav.clear{background:transparent;pointer-events:none}   /* Memories: no band behind the tabs, only the tabs are tappable */
+.nav.clear .navt{pointer-events:auto}
+.navt{position:absolute;top:14px;height:44px;display:flex;flex-direction:column;align-items:center;gap:7px}
+.navt span{font-size:11px;letter-spacing:.17em;color:#999;line-height:15px}
+.navt.on span{color:#000}
+
+/* memories */
+.wf{position:absolute;left:29px;top:80px;width:335px;height:40px;z-index:25}
+.wf-item{position:absolute;left:0;top:0;opacity:0;cursor:pointer;will-change:transform,opacity}
+.wf-in{display:block;height:34px;line-height:34px;padding:0 2px;border:1px solid transparent;border-radius:999px;white-space:nowrap}
+.wf-name{font:500 12px/34px var(--font);letter-spacing:.12em;padding-left:.12em}
+.wf-chev{position:absolute;left:0;top:14.5px;width:8px;height:5px;line-height:0;pointer-events:none;z-index:2}
+.wf-cap{position:absolute;left:0;top:0;height:34px;border:1px solid #000;pointer-events:none;opacity:0}
+.fvA .wf-item.cur .wf-in{border-color:#000;padding:0 27px 0 13px}
+.fvB .wf-item.cur .wf-in{border-color:#000;border-radius:9px;padding:0 27px 0 13px}
+.fvC .wf-in{padding:0 2px}.fvC .wf-item.cur .wf-in{padding:0 25px 0 13px}.fvC .wf-cap{opacity:1;border-radius:999px}
+.fvD .wf-in{padding:0 2px}.fvD .wf-name{font-size:14px;letter-spacing:.12em}
+.canvas{position:absolute;left:0;top:160px;width:393px;height:692px;overflow:visible;touch-action:none;cursor:grab}
+.cv{position:absolute;left:0;top:0;width:393px;height:646px}
+.mi{position:absolute;left:0;top:0;transform-origin:50% 50%;will-change:transform}
+.mi div{position:absolute;inset:0;overflow:hidden;background:#E2E2E2}
+.mi img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.empty{position:absolute;left:0;top:300px;width:393px;text-align:center;font-size:11px;letter-spacing:.17em;color:#999;opacity:0;transition:opacity .5s .3s}
+
+/* detail */
+.det{position:absolute;inset:0;z-index:35}
+.det .bg{position:absolute;inset:0;background:var(--bg)}
+.dshape{position:absolute;left:0;top:0;width:393px;height:852px;overflow:visible;pointer-events:none}
+.dph{position:absolute;left:0;top:0;overflow:hidden;background:#ddd;will-change:transform}
+.dph img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.dinfo{position:absolute;left:29px;top:625px;width:335px;transition:opacity .35s ease, transform .5s cubic-bezier(.16,1,.3,1)}
+.ddate{font-size:14px;line-height:17px;color:#999;letter-spacing:0}
+.dnote{position:absolute;left:34px;top:26px;width:303px;font-size:15px;line-height:21px;text-wrap:pretty;white-space:pre-line}
+.dmood{position:absolute;left:0;top:25px}
+.back{position:absolute;left:calc(var(--g,29px) - 8px);top:74px;width:30px;height:30px;display:grid;place-items:center;z-index:3}
+.swipeHint{position:absolute;left:0;top:214px;width:36px;height:452px}
+.rev{position:absolute;inset:0;z-index:15}
+.rev .back{top:74px}
+.revHdr{position:absolute;left:29px;top:98px}
+.revHdr .meta{gap:24px;justify-content:flex-start}
+.revPhoto{position:absolute;left:46px;top:203px;width:301px;height:360px;border-radius:137.7px;overflow:hidden;transform-origin:50% 50%}
+.revPhoto img{width:100%;height:100%;object-fit:cover;display:block}
+.revArt{position:absolute;left:0;top:0;width:393px;height:852px;pointer-events:none;overflow:visible}
+.revInfo{position:absolute;left:var(--g,31px);top:583px;width:330px}
+.revInfo .eb{display:flex;align-items:center;gap:8px;font-size:15px;line-height:21px;color:#999}
+.revInfo .eb svg{display:block}
+.revInfo .tt{font-size:20px;line-height:27px;margin-top:3px}
+.revInfo .mt{display:flex;align-items:center;gap:8px;margin-top:1px;font-size:16px;color:#999}
+.ai{position:absolute;left:var(--g,31px);top:646px;width:46px;height:38px;border-radius:19px;background:rgba(255,255,255,0);overflow:hidden;z-index:2;transform-origin:6px 19px}
+.ai .dots{position:absolute;left:0;top:13px;width:12px;height:12px}   /* 19.11: the dots start on the grid, under the black title */
+.ai .dots i{position:absolute;left:0;top:0;width:5px;height:5px;border-radius:50%;background:#7a7a7a}
+.ai p{position:absolute;left:16px;top:0;height:38px;display:flex;align-items:center;font-size:15px;line-height:20px;opacity:0;white-space:nowrap}
+.slice{position:absolute;left:0;top:0;width:393px;height:852px;overflow:visible;pointer-events:none}
+.stackPh{position:absolute;left:0;top:0;overflow:hidden;background:#ddd;border-radius:45.7% / 38.3%}
+.stackPh img{width:100%;height:100%;object-fit:cover;display:block}
+.mbar{position:absolute;left:19px;top:82px;width:356px;height:44px;border:1px solid #000;border-radius:22px;z-index:25}   /* 19.11 v2: Noya's bar in "Memories · v1.18 (editable, no nav bar)" */
+.mbar-in{position:absolute;inset:0}
+.mbar{overflow:hidden;width:356px}
+.mbar.anim{transition:width var(--mt,500ms) cubic-bezier(.65,0,.35,1)}
+.mbar.anim .mpill{transition:left var(--mt,500ms) cubic-bezier(.65,0,.35,1),opacity var(--ot,250ms) ease var(--d,0ms),background-color .2s ease-out,color .2s ease-out}
+.mpill{position:absolute;top:4px;height:34px;border-radius:17px;padding:0 9.6px 0 12px;font:500 12px/34px var(--font);letter-spacing:.2em;color:#000;background:transparent;transition:background-color .2s ease-out,color .2s ease-out;white-space:nowrap}
+.mpill.on{background:#000;color:#fff}   /* 19.11: same as the app's buttons (TAP TO REVEAL): 34 high, black with white text; 20.11: font 12 */
+.mbar.folded .mpill.on{background:transparent;color:#000}   /* option B closed: only the outline and the chosen word */
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="devOuter" id="devOuter"><i class="sb l" style="top:13%;height:3.6%"></i><i class="sb l" style="top:20%;height:7.4%"></i><i class="sb l" style="top:29.5%;height:7.4%"></i><i class="sb r" style="top:24%;height:11.5%"></i>
+  <div class="device" id="device"><div class="phone" id="phone" dir="ltr">
+    <div class="splash hide" id="splash"><svg class="spfx" id="spfx" viewBox="0 0 393 852"></svg><svg class="splogo" id="splogo" viewBox="0 0 104 21.2" overflow="visible"></svg></div>
+    <div class="sbar"><b>9:41</b><svg width="67" height="12" viewBox="0 0 67 12"><rect x="0" y="7" width="3" height="5" rx=".7"/><rect x="5" y="5" width="3" height="7" rx=".7"/><rect x="10" y="2.5" width="3" height="9.5" rx=".7"/><rect x="15" y="0" width="3" height="12" rx=".7" opacity=".3"/><path transform="translate(-6 0)" d="M30 3.2a10 10 0 0 1 13.6 0l-1.3 1.3a8 8 0 0 0-11 0zM32.4 5.8a6.4 6.4 0 0 1 8.8 0l-1.3 1.3a4.6 4.6 0 0 0-6.2 0zM34.8 8.4a3 3 0 0 1 4 0L36.8 10.4z"/><rect x="43.5" y=".5" width="21" height="11" rx="3" fill="none" stroke="#000" opacity=".4"/><rect x="45.5" y="2.5" width="17" height="7" rx="1.5"/><rect x="65.5" y="4" width="1.5" height="4" rx=".7" opacity=".4"/></svg></div>
+
+    <!-- ================= TODAY / FORECAST ================= -->
+    <section class="screen" id="sToday">
+      <div id="todayUI" class="fadeUI">
+        <div class="hdr"><div class="temp" id="tTemp">26°c</div><div class="meta"><span class="cap" id="tCond">SUNNY</span><span class="cap" id="tCity">TEL AVIV</span></div></div>
+        <svg id="vis" viewBox="0 0 393 852"></svg>
+        <button class="reveal" id="reveal">TAP TO REVEAL A MEMORY</button>
+        <svg class="graph" id="graph" viewBox="0 0 393 852"></svg>
+        <div class="daysWrap"><div class="days" id="days"></div></div>
+      </div>
+      <div class="catch" id="catch" role="button" aria-label="Catch a new memory">
+        <svg class="plus" width="11.2" height="11.2" viewBox="0 0 11.2 11.2"><path d="M5.6 0v11.2M0 5.6h11.2" stroke="#999" stroke-width="1.6"/></svg>
+        <svg class="cam" width="18" height="15" viewBox="0 0 18 15"><circle cx="2" cy="1" r="1" fill="#999"/><rect x="8" y="0" width="9" height="2" fill="#999"/><path fill="#999" fill-rule="evenodd" d="M0 3h18v12H0zM9 5.2a3.8 3.8 0 1 0 0 7.6a3.8 3.8 0 0 0 0-7.6z"/></svg>
+        <svg class="arch" width="70" height="84" viewBox="0 0 70 84"><path id="archPath" d="M35.00 74.08 L31.97 74.08 A22.47 22.47 0 0 1 9.50 51.61 L9.50 31.97 A22.47 22.47 0 0 1 31.97 9.50 L38.03 9.50 A22.47 22.47 0 0 1 60.50 31.97 L60.50 51.61 A22.47 22.47 0 0 1 38.03 74.08 L35.00 74.08 L31.97 74.08 A22.47 22.47 0 0 1 9.50 51.61 L9.50 31.97 A22.47 22.47 0 0 1 31.97 9.50 L38.03 9.50 A22.47 22.47 0 0 1 60.50 31.97 L60.50 51.61 A22.47 22.47 0 0 1 38.03 74.08 L35.00 74.08" fill="none"/><text><textPath href="#archPath" id="archText" startOffset="0">Catch a New Memory</textPath></text></svg>
+      </div>
+    </section>
+
+    <!-- ================= MEMORY / REVEALED ================= -->
+    <section class="rev hide" id="sRev">
+      <button class="back" id="revBack" aria-label="Back"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M12.5 1.5v11L1.8 7z" fill="none" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+      <div class="revHdr" id="revHdr"><div class="temp">26°c</div><div class="meta"><span class="cap">SUNNY</span><span class="cap">TEL AVIV</span></div></div>
+      <div class="revPhoto" id="revPhoto"></div>
+      <svg class="revArt" id="revArt" viewBox="0 0 393 852"></svg>
+      <div class="revInfo" id="revInfo"><div class="eb"><span id="revMood"></span><span id="revEb"></span></div><div class="tt" id="revTitle"></div></div>
+      <div class="ai" id="ai"><div class="dots" id="aiDots"><i></i><i></i><i></i><i></i></div><p id="aiText"></p></div>
+    </section>
+
+    <!-- ================= CAMERA ================= -->
+    <section class="screen hide" id="sCam">
+      <div class="vf" id="vf"></div>
+      <div id="camUI" class="fadeUI" style="opacity:0">
+        <button class="x14" id="camClose" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M1 1l12 12M13 1L1 13" stroke="#000" stroke-width="1.4"/></svg></button>
+        <div class="camAlt" id="camAlt" dir="rtl"></div>
+        <div class="camHint">CATCH A NEW MEMORY</div>
+        <button class="shutter" id="shutter" aria-label="Take photo"><i></i></button>
+        <input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
+      </div>
+      <div class="flash" id="flash"></div>
+    </section>
+
+    <!-- ================= NEW MEMORY ================= -->
+    <section class="screen hide" id="sNew">
+      <div class="vf" id="newPhoto"></div>
+      <div id="newUI" class="fadeUI" style="opacity:0">
+        <button class="close32" id="newClose" aria-label="Close"></button>
+        <div id="moodRow" class="fadeUI"><div class="moodTitle">What's your mood today?</div><div id="moods"></div></div>
+        <div class="noteF fadeUI" id="note" style="opacity:0;pointer-events:none"><input id="noteIn" maxlength="90" autocomplete="off"><i id="noteLine"></i></div>
+        <button class="btn" id="save">SAVE MEMORY</button>
+      </div>
+    </section>
+
+    <!-- ================= MEMORIES ================= -->
+    <section class="screen hide" id="sMem">
+      <div class="canvas" id="canvas"><div class="cv" id="cv"></div><div class="empty" id="empty">NO MEMORIES IN THIS WEATHER YET</div></div>
+      <div class="wf" id="wf" style="display:none"></div>
+      <div class="mbar" id="mbar"><div class="mbar-in" id="mbarIn"></div></div>
+    </section>
+
+    <!-- bottom nav (Forecast + Memories) -->
+    <nav class="nav" id="nav">
+      <button class="navt" id="navF" style="left:110px;width:76px"><svg width="22" height="22" viewBox="0 0 22 22"><path id="navFi" fill-rule="evenodd" fill="#F5C400" d="M22 11a11 11 0 1 1-22 0a11 11 0 0 1 22 0ZM6.4 11a4.6 4.6 0 1 0 9.2 0a4.6 4.6 0 0 0-9.2 0Z"/></svg><span>FORECAST</span></button>
+      <button class="navt" id="navM" style="left:206px;width:78px"><svg width="22" height="22" viewBox="0 0 22 22" id="navMi" style="overflow:visible"></svg><span>MEMORIES</span></button>
+    </nav>
+
+    <!-- ================= MEMORY DETAIL ================= -->
+    <section class="det hide" id="sDet">
+      <div class="bg" id="detBg"></div>
+      <div id="dstrip"></div>
+      <svg class="dshape" id="dshape" viewBox="0 0 393 852"></svg>
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><filter id="figStarSh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="8.31" stdDeviation="8.31" flood-color="#000" flood-opacity=".16"/></filter></defs></svg>
+      <div class="dinfo" id="dinfo"><div class="ddate" id="ddate"></div><div class="dmood" id="dmood"></div><div class="dnote" id="dnote"></div></div>
+      <button class="back" id="back" aria-label="Back to memories"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M12.5 1.5v11L1.8 7z" fill="none" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
+    </section>
+  <div class="island"></div>
+  </div></div></div>
+
+  <button class="fab" id="fab" aria-label="פאנל השליטה"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12" stroke="#000" stroke-width="1.4"/></svg></button>
+
+  <aside class="panel" id="panel">
+    <h1>REFORM · V1</h1>
+    <p class="sub">כל מה שאושר, מחובר לפלואו אחד. אפשר ללחוץ בתוך הטלפון כמו באפליקציה, או לקפוץ למסך מכאן. כל ערך בפאנל מתחיל מהערך המאושר.</p>
+
+    <div class="edBox" id="edBox">
+      <h2 style="border-top:0;margin-top:14px;padding-top:0">עריכת מסך SUNNY <small>גרירה בתוך הטלפון</small></h2>
+      <div class="row"><button class="pbtn" id="edOn" aria-pressed="false">פתיחת מצב עריכה</button><button class="pbtn" id="edReset">ביטול שינויים מאז השמירה</button></div>
+      <div class="row" style="margin-top:6px"><button class="pbtn" id="edCopy">העתקת הסידור (כדי לשלוח לי)</button></div>
+      <div id="edSel" class="edSel">
+        <div class="ctl"><div class="lab">גודל התמונה שנבחרה<span id="edWv"></span></div><input type="range" id="edW" min="80" max="260" step="1"></div>
+        <div class="ctl"><div class="lab">סיבוב<span id="edRv"></span></div><input type="range" id="edR" min="-30" max="30" step="0.5"></div>
+        <div class="row"><button class="pbtn" id="edFront">להביא קדימה</button><button class="pbtn" id="edBack">לשלוח אחורה</button></div>
+      </div>
+      <p class="note" id="edNote">במצב עריכה: גוררים כל תמונה למקום שלה. לחיצה על תמונה בוחרת אותה, ואז אפשר לשנות לה גודל וסיבוב כאן. הכל נשמר אוטומטית.</p>
+    </div>
+
+    <h2>מסכים <small>לחיצה = קפיצה</small></h2>
+    <div class="jump" id="jump"></div>
+
+    <div id="fitBox"><h2>באייפון <small>גודל התצוגה</small></h2>
+    <div class="seg" id="fitMode"><button data-v="real">גודל אמיתי 1:1</button><button data-v="fit">כל המסך בבת אחת</button></div>
+    <p class="note">גודל אמיתי: האפליקציה ברוחב המסך בדיוק, כמו באייפון 16. גוללים למעלה ולמטה כדי לראות את התחתית (סרגל הניווט).</p></div>
+
+    <h2>מהירות <small>לכל התנועות יחד</small></h2>
+    <div class="ctl"><div class="lab">מהירות כללית<span id="spdV"></span></div><input type="range" id="spd" min="0.2" max="1.5" step="0.05"></div>
+    <div class="row"><button class="pbtn" id="slow" aria-pressed="false">הילוך איטי ×3</button><button class="pbtn" id="pause" aria-pressed="false">עצירה</button></div>
+
+    <h2>דימויי מזג האוויר <small>פועל · קצב</small></h2>
+    <div id="visCtl"></div>
+
+    <h2>תנועות האפליקציה <small>במילישניות</small></h2>
+    <div id="msCtl"></div>
+
+    <h2>אפשרויות לבחירה <small>חדש</small></h2>
+    <div class="ctl"><div class="lab">אייקון Memories בבר התחתון · סקיצות</div><div class="seg" id="miMode"><button data-v="grid">A · רשת</button><button data-v="two">B · שתיים</button><button data-v="pile">C · ערימה ✓</button><button data-v="fan">D · מניפה</button><button data-v="collage">E · קולאז׳</button></div></div>
+    <div class="ctl"><div class="lab">בר הניווט ב-Memories</div><div class="seg" id="mbMode"><button data-v="open">A · כל המצבים גלויים</button><button data-v="fold">B · רק ALL, נפתח בלחיצה</button></div></div>
+    <p class="note">B: רואים רק את המצב שנבחר. לחיצה עליו פותחת את הבר ימינה; בחירה במזג סוגרת אותו חזרה. לחיצה מחוץ לבר סוגרת.</p>
+    <div class="ctl"><div class="lab">טקסט הגרף השעתי</div><div class="seg" id="graphMode"><button data-v="big">גדול וקריא</button><button data-v="figma">כמו בפיגמה</button></div></div>
+
+    <h2>מצלמה</h2>
+    <div class="seg" id="camMode"><button data-v="live">מצלמה חיה</button><button data-v="phone">מצלמת הטלפון</button><button data-v="sample">תמונה לדוגמה</button></div>
+    <p class="note">חיה = עינית בתוך הצורה. אם הדפדפן חוסם אותה, עוברים לבד לתמונה לדוגמה, ואפשר לצלם דרך מצלמת הטלפון.</p>
+
+    <h2>שמירה</h2>
+    <div class="row"><button class="pbtn" id="copy">העתקת ההגדרות לקוד</button><button class="pbtn" id="reset">חזרה לערכים המאושרים</button><button class="pbtn" id="wipe">מחיקת הזיכרונות שצילמתי</button></div>
+    <div id="status" role="status"></div>
+    <p class="note">עוד בעיצוב (מסומנים כזמניים): Memory Reveal, המעבר אחרי השמירה, הספלאש.</p>
+  </aside>
+</div>
+<script src="engines.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
