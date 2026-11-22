@@ -189,7 +189,8 @@ const device = $('device'), phone = $('phone');
 const IS_PHONE = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
 /* on a phone: "real" = true size, the app is exactly as wide as the screen (1:1 on an iPhone 16) and the page scrolls up/down for the rest;
    "fit" = the whole app squeezed into the visible area */
-const fitMem = { w: 0, h: 0 };
+const fitMem = { w: 0, h: 0, sat: 0 };
+function satPx() { const d = document.createElement('div'); d.style.cssText = 'position:fixed;top:0;padding-top:env(safe-area-inset-top);visibility:hidden'; document.body.appendChild(d); const v = parseFloat(getComputedStyle(d).paddingTop) || 0; d.remove(); return v; }
 function fit() {
   const wide = innerWidth >= 900;
   document.body.classList.toggle('phoneMode', IS_PHONE);
@@ -197,19 +198,21 @@ function fit() {
   document.body.classList.toggle('stackMode', !IS_PHONE && !wide);
   const o = $('devOuter');
   if (IS_PHONE) {
-    /* 22.11: the app fills the phone's width. Its top 47px (the drawn status bar) may hide under the phone's real status bar;
-       only when the screen is too short is part of that strip cropped and the app scaled down to fit (no scrolling).
-       The height is the tallest seen at this width, so the keyboard opening never shrinks the app. */
-    if (innerWidth !== fitMem.w) { fitMem.w = innerWidth; fitMem.h = 0; }
-    fitMem.h = Math.max(fitMem.h, innerHeight);
-    const sat = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat')) || 0, H = fitMem.h;
-    let s = innerWidth / 393, c = 0;
-    for (let i = 0; i < 3; i++) { c = Math.max(0, 47 - sat / s); s = Math.min(innerWidth / 393, H / (852 - c)); }
+    /* 22.11 (locked): the app always fills the phone's full width, centred. Sizes come from the layout viewport, which does not
+       change when the keyboard opens or the page zooms, and are kept per width — so the keyboard never shrinks the app.
+       The drawn status-bar strip (top 47px) is hidden under / replaced by the phone's own status bar; if the screen is a little
+       short, the extra is cut from the empty bottom edge (up to 24px); only a much shorter screen scales the app down. */
+    const W = document.documentElement.clientWidth || innerWidth;
+    if (W !== fitMem.w) { fitMem.w = W; fitMem.h = 0; fitMem.sat = satPx(); }
+    fitMem.h = Math.max(fitMem.h, document.documentElement.clientHeight || innerHeight);
+    const H = fitMem.h, sat = fitMem.sat;
+    let s = W / 393, c = Math.max(0, 47 - sat / s);
+    if ((852 - c) * s - H > 24 * s) s = H / (852 - c);
     device.style.width = o.style.width = 393 * s + 'px';
-    device.style.height = o.style.height = (852 - c) * s + 'px';
+    device.style.height = o.style.height = Math.min((852 - c) * s, H) + 'px';
     phone.style.transform = `translateY(${-c * s}px) scale(${s})`;
     device.style.marginTop = '';
-    o.style.marginLeft = Math.max(0, (innerWidth - 393 * s) / 2) + 'px';
+    o.style.marginLeft = Math.max(0, (W - 393 * s) / 2) + 'px';
     return;
   }
   let s;
