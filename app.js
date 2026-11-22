@@ -31,6 +31,7 @@ const MS_DEF = {
 /* 22.11: the approved filter bar is option B (folded); on a new device (her phone) it used to start in the always-open mode */
 const DEF_STATE = { speed: 1, vis: Object.fromEntries(VIS_KEYS.map(([k]) => [k, { on: true, k: 1 }])), ms: Object.fromEntries(Object.entries(MS_DEF).map(([k, v]) => [k, v[0]])), cam: 'live', graph: 'big', fv: 'A', mb: 'fold', mi: 'pile' };   // 20.11: Noya chose the pile icon
 let S = Object.assign(clone(DEF_STATE), lsGet('reform-v1-settings', {}));
+S.mb = 'fold';   // 22.11: the folded filter bar is always the starting state, even if another mode was saved on this device
 S.vis = Object.assign(clone(DEF_STATE.vis), S.vis || {}); S.ms = Object.assign(clone(DEF_STATE.ms), S.ms || {});
 let SLOW = 1, PAUSED = false;
 const saveS = () => lsSet('reform-v1-settings', S);
