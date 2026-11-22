@@ -116,9 +116,9 @@ const BASE_MEM = [
   { id: 'm15', title: 'Moon at Noon', src: P('daytime-moon'), date: '2026-09-04', weather: 'sunny', temp: 28, place: 'TEL AVIV', mood: 'calm', note: '' },
   { id: 'm16', title: 'Hot Tub in the Desert', src: P('campfire'), date: '2026-07-15', weather: 'heat', temp: 37, place: 'ARAVA', mood: 'happy', note: 'Somehow the water was colder than the air.' },
 ];
-let USER_MEM = lsGet('reform-v1-mem', []);
-// 21.11: Noya asked to remove the grey test capture (no photo, just the camera's placeholder) from SUNNY
-USER_MEM = USER_MEM.filter(m => m.id !== 'u1795275901238'); lsSet('reform-v1-mem', USER_MEM);
+// 22.11: captured photos live only until the app is closed — every opening starts clean with Noya's photos (option A).
+// Photos saved by older versions are cleared once.
+let USER_MEM = []; lsSet('reform-v1-mem', []);
 // 18.11: every photo appears once — a memory whose photo is already in the archive is not shown twice
 const allMem = () => { const seen = new Set(); return [...USER_MEM, ...BASE_MEM].filter(m => { if (seen.has(m.src)) return false; seen.add(m.src); return true; }); };
 const memById = id => allMem().find(m => m.id === id);
@@ -205,10 +205,11 @@ function fit() {
     const W = document.documentElement.clientWidth || innerWidth;
     if (W !== fitMem.w) { fitMem.w = W; fitMem.h = 0; fitMem.sat = satPx(); }
     fitMem.h = Math.max(fitMem.h, document.documentElement.clientHeight || innerHeight);
-    const H = fitMem.h, sat = fitMem.sat;
+    const H = fitMem.h;
     // always the full width (never scaled down): what doesn't fit in height is cut from the empty bottom edge (up to 24px), then from the top
-    const s = W / 393; let c = Math.max(0, 47 - sat / s);
-    const over = (852 - c) * s - H; if (over > 24 * s) c += over / s - 24;
+    // 22.11: the app's bottom edge sits on the screen's bottom edge, so the bar keeps the same distance from the bottom as in the
+    // design (and as in the demo here); what is cut is the drawn status bar at the top (at most 100px, on very short screens)
+    const s = W / 393, c = Math.min(100, Math.max(0, 852 - H / s));
     device.style.width = o.style.width = W + 'px';
     device.style.height = o.style.height = H + 'px';
     phone.style.transform = `translateY(${-c * s}px) scale(${s})`;
@@ -651,7 +652,6 @@ pressable($('save'), async () => {
   await wait(D(160));
   const d = DAYS[0], mem = { id: 'u' + Date.now(), title: $('noteIn').value.trim() || 'A new memory', src: newSrc, date: new Date().toISOString().slice(0, 10), weather: VIS_TO_FILTER[d.vis], temp: d.temp, place: 'TEL AVIV', mood: chosen, note: $('noteIn').value.trim(), user: true };
   USER_MEM.unshift(mem);
-  if (!lsSet('reform-v1-mem', USER_MEM.slice(0, 6))) say('הזיכרון נשמר רק לביקור הזה (אין מקום בדפדפן).');
   await saveStack(mem);
   goMem({ fresh: mem.id });
 });
@@ -1462,7 +1462,7 @@ const syncCam = () => camSeg.querySelectorAll('button').forEach(b => b.setAttrib
 camSeg.querySelectorAll('button').forEach(b => b.onclick = () => { S.cam = b.dataset.v; syncCam(); saveS(); if (scr === 'cam') { stopCamera(); startCamera(); } });
 function say(t) { $('status').textContent = t; clearTimeout(say.t); say.t = setTimeout(() => { $('status').textContent = ''; }, 5000); }
 $('reset').onclick = () => { S = clone(DEF_STATE); saveS(); syncSpd(); buildVisCtl(); buildMsCtl(); syncCam(); segSync('graphMode', 'graph'); segSync('mbMode', 'mb'); segSync('miMode', 'mi'); navIconPaint($('navM').classList.contains('on')); mbOpen = false; mbarApply(false); say('חזרנו לכל הערכים המאושרים.'); };
-$('wipe').onclick = () => { USER_MEM = []; lsSet('reform-v1-mem', []); if (scr === 'mem') goMem(); say('הזיכרונות שצילמת נמחקו מהדפדפן הזה.'); };
+$('wipe').onclick = () => { USER_MEM = []; lsSet('reform-v1-mem', []); if (scr === 'mem') goMem(); say('הזיכרונות שצילמת נמחקו.'); };
 $('copy').onclick = async () => {
   const changed = Object.fromEntries(Object.entries(S.ms).filter(([k, v]) => v !== MS_DEF[k][0]));
   const out = { app: 'REFORM version 1', speed: S.speed, weatherVisuals: S.vis, uiMotionMs: S.ms, changedFromApproved: changed, camera: S.cam };
