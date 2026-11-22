@@ -75,7 +75,9 @@ body.phoneMode{background:var(--bg)}
 .phoneMode .panel.open{transform:none}
 .phoneMode .fab{display:grid;place-items:center;position:fixed;z-index:60;right:12px;top:calc(env(safe-area-inset-top) + 50px);width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.08);backdrop-filter:blur(8px)}
 .phoneMode .phone .sbar{visibility:hidden}
-body:not(.phoneMode) #fitBox{display:none}
+#fitBox{display:none}
+:root{--sat:env(safe-area-inset-top)}
+body.phoneMode{position:fixed;inset:0;overscroll-behavior:none}
 body.realSize{overflow-y:auto;overflow-x:hidden;height:auto}
 .realSize .phone{touch-action:pan-y}
 .realSize .wrap{height:auto}

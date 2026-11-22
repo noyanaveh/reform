@@ -188,19 +188,32 @@ const IS_PHONE = matchMedia('(pointer: coarse)').matches && Math.min(screen.widt
 /* on a phone: "real" = true size, the app is exactly as wide as the screen (1:1 on an iPhone 16) and the page scrolls up/down for the rest;
    "fit" = the whole app squeezed into the visible area */
 function fit() {
-  const wide = innerWidth >= 900, real = IS_PHONE && (S.phoneFit || 'real') === 'real';
+  const wide = innerWidth >= 900;
   document.body.classList.toggle('phoneMode', IS_PHONE);
-  document.body.classList.toggle('realSize', real);
+  document.body.classList.remove('realSize');
   document.body.classList.toggle('stackMode', !IS_PHONE && !wide);
+  const o = $('devOuter');
+  if (IS_PHONE) {
+    /* on a real phone the phone's own status bar replaces the app's top 47px, so that strip is cropped
+       and the rest (805px) is fitted into the visible screen: no scrolling, nothing hidden behind browser bars */
+    const top = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat')) || 0;
+    const H = (window.visualViewport ? visualViewport.height : innerHeight) - top;
+    const s = Math.min(innerWidth / 393, H / 805);
+    device.style.width = o.style.width = 393 * s + 'px';
+    device.style.height = o.style.height = 805 * s + 'px';
+    phone.style.transform = `translateY(${-47 * s}px) scale(${s})`;
+    device.style.marginTop = top + 'px';
+    return;
+  }
   let s;
-  if (IS_PHONE) s = real ? innerWidth / 393 : Math.min(innerWidth / 393, innerHeight / 852);
-  else if (wide) s = Math.min((innerHeight - 64) / 852, 440 / 393);
+  if (wide) s = Math.min((innerHeight - 64) / 852, 440 / 393);
   else s = Math.min((innerWidth - 60) / 393, (innerHeight - 56) / 852);
   device.style.width = 393 * s + 'px'; device.style.height = 852 * s + 'px';
-  const o = $('devOuter'); o.style.width = 393 * s + 'px'; o.style.height = 852 * s + 'px';
+  o.style.width = 393 * s + 'px'; o.style.height = 852 * s + 'px';
   phone.style.transform = `scale(${s})`;
-  device.style.marginTop = IS_PHONE && !real ? Math.max(0, (innerHeight - 852 * s) / 2) + 'px' : '';
+  device.style.marginTop = '';
 }
+if (window.visualViewport) visualViewport.addEventListener('resize', fit);
 addEventListener('resize', fit); fit();
 const toPhone = e => { const r = phone.getBoundingClientRect(), s = r.width / 393; return { x: (e.clientX - r.left) / s, y: (e.clientY - r.top) / s }; };
 
