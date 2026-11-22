@@ -73,7 +73,8 @@ body.phoneMode{background:var(--bg)}
 .phoneMode .sb,.phoneMode .phone .island{display:none}
 .phoneMode .panel{position:fixed;left:0;right:0;bottom:0;width:auto;max-height:72vh;border-radius:18px 18px 0 0;transform:translateY(105%);transition:transform .45s cubic-bezier(.22,1,.36,1);z-index:50;box-shadow:0 -10px 40px rgba(0,0,0,.18);padding-bottom:calc(28px + env(safe-area-inset-bottom))}
 .phoneMode .panel.open{transform:none}
-.phoneMode .fab{display:grid;place-items:center;position:fixed;z-index:60;right:12px;top:calc(env(safe-area-inset-top) + 50px);width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.08);backdrop-filter:blur(8px)}
+/* 22.11: control-panel button removed on the phone */
+.phoneMode .fab{display:none;place-items:center;position:fixed;z-index:60;right:12px;top:calc(env(safe-area-inset-top) + 50px);width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.08);backdrop-filter:blur(8px)}
 .phoneMode .phone .sbar{visibility:hidden}
 #fitBox{display:none}
 :root{--sat:env(safe-area-inset-top)}
@@ -138,6 +139,9 @@ body.stackMode{overflow:auto}
 .shutter{position:absolute;left:155px;top:690px;width:84px;height:84px;border-radius:50%;border:1px solid #000;display:grid;place-items:center}
 .shutter i{width:66px;height:66px;border-radius:50%;background:#000;transition:transform .12s ease-out}
 .shutter:active i{transform:scale(.88)}
+.camFlip{position:absolute;left:290px;top:710px;width:44px;height:44px;display:none;place-items:center;border-radius:50%}
+.camFlip.on{display:grid}
+.camFlip:active svg{transform:rotate(-30deg);transition:transform .15s}
 .camAlt{position:absolute;left:0;width:393px;top:536px;text-align:center;font-size:11px;letter-spacing:.06em;color:#999}
 .camAlt label{text-decoration:underline;cursor:pointer;color:#000;margin:0 4px}
 .flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:45}
@@ -264,6 +268,7 @@ body.stackMode{overflow:auto}
         <div class="camAlt" id="camAlt" dir="rtl"></div>
         <div class="camHint">CATCH A NEW MEMORY</div>
         <button class="shutter" id="shutter" aria-label="Take photo"><i></i></button>
+        <button class="camFlip" id="camFlip" aria-label="Flip camera"><svg width="26" height="22" viewBox="0 0 26 22" fill="none" stroke="#000" stroke-width="1.4"><path d="M3.5 9.5A9.5 9.5 0 0 1 21.6 6.6"/><polyline points="22.4,1.8 21.8,6.9 16.9,6"/><path d="M22.5 12.5A9.5 9.5 0 0 1 4.4 15.4"/><polyline points="3.6,20.2 4.2,15.1 9.1,16"/></svg></button>
         <input type="file" id="fileCam" accept="image/*" capture="environment" hidden>
       </div>
       <div class="flash" id="flash"></div>

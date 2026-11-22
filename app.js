@@ -28,7 +28,8 @@ const MS_DEF = {
   moodFly: [700, 'מצב רוח · מעוף החותמת'], filterOpen: [750, 'סינון · פתיחה'], filterPick: [600, 'סינון · בחירה'],
   recompose: [1050, 'Memories · הרכבה מחדש'], detailOpen: [750, 'זיכרון · פתיחה'], detailSwipe: [600, 'זיכרון · החלקה'],
 };
-const DEF_STATE = { speed: 1, vis: Object.fromEntries(VIS_KEYS.map(([k]) => [k, { on: true, k: 1 }])), ms: Object.fromEntries(Object.entries(MS_DEF).map(([k, v]) => [k, v[0]])), cam: 'live', graph: 'big', fv: 'A', mb: 'open', mi: 'pile' };   // 20.11: Noya chose the pile icon
+/* 22.11: the approved filter bar is option B (folded); on a new device (her phone) it used to start in the always-open mode */
+const DEF_STATE = { speed: 1, vis: Object.fromEntries(VIS_KEYS.map(([k]) => [k, { on: true, k: 1 }])), ms: Object.fromEntries(Object.entries(MS_DEF).map(([k, v]) => [k, v[0]])), cam: 'live', graph: 'big', fv: 'A', mb: 'fold', mi: 'pile' };   // 20.11: Noya chose the pile icon
 let S = Object.assign(clone(DEF_STATE), lsGet('reform-v1-settings', {}));
 S.vis = Object.assign(clone(DEF_STATE.vis), S.vis || {}); S.ms = Object.assign(clone(DEF_STATE.ms), S.ms || {});
 let SLOW = 1, PAUSED = false;
@@ -484,17 +485,17 @@ $('navF').onclick = () => { if (scr !== 'today') goToday(); };
 $('navM').onclick = () => { if (scr !== 'mem') goMem(); };
 
 /* ======================= CAMERA ======================= */
-let stream = null, camReady = false, camSource = 'sample';
+let stream = null, camReady = false, camSource = 'sample', camFacing = 'environment';   // 22.11: front/back camera (selfie)
 const vf = $('vf');
 async function startCamera() {
-  vf.innerHTML = ''; camReady = false; $('camAlt').innerHTML = '';
+  vf.innerHTML = ''; camReady = false; $('camAlt').innerHTML = ''; $('camFlip').classList.remove('on');
   const sample = () => { camSource = 'sample'; vf.innerHTML = ''; };   // 18.11: an empty viewfinder (plain background), not a photo from the archive
   if (S.cam === 'live' && navigator.mediaDevices?.getUserMedia) {
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 } }, audio: false });
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: camFacing, width: { ideal: 1280 } }, audio: false });
       const v = document.createElement('video'); v.playsInline = true; v.muted = true; v.autoplay = true; v.srcObject = stream;
-      const tr = stream.getVideoTracks()[0]; if ((tr.getSettings?.().facingMode || '') === 'user') v.className = 'mirror';
-      vf.appendChild(v); await v.play().catch(() => {}); camSource = 'live'; camReady = true; return;
+      const tr = stream.getVideoTracks()[0]; if ((tr.getSettings?.().facingMode || camFacing) === 'user') v.className = 'mirror';
+      vf.appendChild(v); await v.play().catch(() => {}); camSource = 'live'; camReady = true; camFlipShow(); return;
     } catch (e) {
       sample(); $('camAlt').innerHTML = 'המצלמה החיה חסומה כאן · <label for="fileCam">לצלם עם מצלמת הטלפון</label>'; return;
     }
@@ -502,6 +503,15 @@ async function startCamera() {
   if (S.cam === 'phone') { camSource = 'phone'; vf.innerHTML = ''; $('camAlt').innerHTML = 'לחיצה על הכפתור פותחת את מצלמת הטלפון'; return; }
   sample(); if (S.cam === 'live') $('camAlt').innerHTML = '<label for="fileCam">לצלם עם מצלמת הטלפון</label>';
 }
+async function camFlipShow() {   // the flip button appears only when the phone has more than one camera
+  try { const n = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput').length; $('camFlip').classList.toggle('on', n > 1); } catch (e) {}
+}
+$('camFlip').onclick = async () => {
+  if (camSource !== 'live') return;
+  camFacing = camFacing === 'user' ? 'environment' : 'user';
+  vf.style.transition = `opacity ${D(140)}ms`; vf.style.opacity = 0;
+  stopCamera(); await startCamera(); vf.style.opacity = 1;
+};
 function stopCamera() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } camReady = false; }
 /* tap → the shape is "pulled out": one continuous move that first leans out of the edge, then curves into the viewfinder */
 async function openCamera() {
@@ -551,14 +561,15 @@ function PLAIN_SHOT() {
   const gr = g.createLinearGradient(0, 0, 0, 800); gr.addColorStop(0, '#E4E4E2'); gr.addColorStop(1, '#CFCFCC'); g.fillStyle = gr; g.fillRect(0, 0, 670, 800);
   return c.toDataURL('image/jpeg', 0.8);
 }
-function shrinkToData(img, w, h) {
+function shrinkToData(img, w, h, mirror) {
   const c = document.createElement('canvas'), tw = 670, th = 800; c.width = tw; c.height = th;
+  if (mirror) { const g = c.getContext('2d'); g.translate(tw, 0); g.scale(-1, 1); }   // a selfie is kept as it was seen on screen
   const k = Math.max(tw / w, th / h), sw = tw / k, sh = th / k;
   c.getContext('2d').drawImage(img, (w - sw) / 2, (h - sh) / 2, sw, sh, 0, 0, tw, th);
   return c.toDataURL('image/jpeg', 0.82);
 }
 $('shutter').onclick = () => {
-  if (camSource === 'live' && camReady) { const v = vf.querySelector('video'); if (v && v.videoWidth) { takePhoto(shrinkToData(v, v.videoWidth, v.videoHeight)); return; } }
+  if (camSource === 'live' && camReady) { const v = vf.querySelector('video'); if (v && v.videoWidth) { takePhoto(shrinkToData(v, v.videoWidth, v.videoHeight, v.classList.contains('mirror'))); return; } }
   if (camSource === 'phone') { $('fileCam').click(); return; }
   takePhoto(PLAIN_SHOT());
 };
