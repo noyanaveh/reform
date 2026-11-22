@@ -189,6 +189,7 @@ const device = $('device'), phone = $('phone');
 const IS_PHONE = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
 /* on a phone: "real" = true size, the app is exactly as wide as the screen (1:1 on an iPhone 16) and the page scrolls up/down for the rest;
    "fit" = the whole app squeezed into the visible area */
+const fitMem = { w: 0, h: 0 };
 function fit() {
   const wide = innerWidth >= 900;
   document.body.classList.toggle('phoneMode', IS_PHONE);
@@ -196,15 +197,19 @@ function fit() {
   document.body.classList.toggle('stackMode', !IS_PHONE && !wide);
   const o = $('devOuter');
   if (IS_PHONE) {
-    /* on a real phone the phone's own status bar replaces the app's top 47px, so that strip is cropped
-       and the rest (805px) is fitted into the visible screen: no scrolling, nothing hidden behind browser bars */
-    const top = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat')) || 0;
-    const H = (window.visualViewport ? visualViewport.height : innerHeight) - top;
-    const s = Math.min(innerWidth / 393, H / 805);
+    /* 22.11: the app fills the phone's width. Its top 47px (the drawn status bar) may hide under the phone's real status bar;
+       only when the screen is too short is part of that strip cropped and the app scaled down to fit (no scrolling).
+       The height is the tallest seen at this width, so the keyboard opening never shrinks the app. */
+    if (innerWidth !== fitMem.w) { fitMem.w = innerWidth; fitMem.h = 0; }
+    fitMem.h = Math.max(fitMem.h, innerHeight);
+    const sat = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat')) || 0, H = fitMem.h;
+    let s = innerWidth / 393, c = 0;
+    for (let i = 0; i < 3; i++) { c = Math.max(0, 47 - sat / s); s = Math.min(innerWidth / 393, H / (852 - c)); }
     device.style.width = o.style.width = 393 * s + 'px';
-    device.style.height = o.style.height = 805 * s + 'px';
-    phone.style.transform = `translateY(${-47 * s}px) scale(${s})`;
-    device.style.marginTop = top + 'px';
+    device.style.height = o.style.height = (852 - c) * s + 'px';
+    phone.style.transform = `translateY(${-c * s}px) scale(${s})`;
+    device.style.marginTop = '';
+    o.style.marginLeft = Math.max(0, (innerWidth - 393 * s) / 2) + 'px';
     return;
   }
   let s;
@@ -215,7 +220,7 @@ function fit() {
   phone.style.transform = `scale(${s})`;
   device.style.marginTop = '';
 }
-if (window.visualViewport) visualViewport.addEventListener('resize', fit);
+document.addEventListener('focusout', () => { if (IS_PHONE) setTimeout(() => scrollTo(0, 0), 50); });   // after typing, the page returns to its place
 addEventListener('resize', fit); fit();
 const toPhone = e => { const r = phone.getBoundingClientRect(), s = r.width / 393; return { x: (e.clientX - r.left) / s, y: (e.clientY - r.top) / s }; };
 
