@@ -218,7 +218,7 @@ function fit() {
     return;
   }
   let s;
-  if (wide) s = Math.min((innerHeight - 64) / 852, 440 / 393);
+  if (wide) s = window.SHOW ? Math.min((innerHeight - 60) / 852, (innerWidth - 60) / 393) : Math.min((innerHeight - 64) / 852, 440 / 393);
   else s = Math.min((innerWidth - 60) / 393, (innerHeight - 56) / 852);
   device.style.width = 393 * s + 'px'; device.style.height = 852 * s + 'px';
   o.style.width = 393 * s + 'px'; o.style.height = 852 * s + 'px';
@@ -1540,3 +1540,11 @@ const ready = () => { measureGrid(); wfApplyVariant(); archMeasure(); goToday({ 
   const sync = () => seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === (S.phoneFit || 'real')));
   seg.querySelectorAll('button').forEach(b => b.onclick = () => { S.phoneFit = b.dataset.v; saveS(); sync(); fit(); scrollTo(0, 0); });
   sync(); })();
+
+/* Show mode (for presenting): ?show in the address hides the control panel and its button; the phone grows to the window.
+   On a computer, the H key (or ה) switches it on and off. */
+addEventListener('keydown', e => {
+  if (!['h', 'H', 'ה'].includes(e.key) || e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target; if (t && t.closest && t.closest('input,textarea,select,[contenteditable="true"],[contenteditable="plaintext-only"]')) return;
+  window.SHOW = !window.SHOW; document.documentElement.classList.toggle('show', window.SHOW); fit();
+});

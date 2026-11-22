@@ -226,6 +226,7 @@ body.stackMode{overflow:auto}
 .mpill{position:absolute;top:4px;height:34px;border-radius:17px;padding:0 9.6px 0 12px;font:500 12px/34px var(--font);letter-spacing:.2em;color:#000;background:transparent;transition:background-color .2s ease-out,color .2s ease-out;white-space:nowrap}
 .mpill.on{background:#000;color:#fff}   /* 19.11: same as the app's buttons (TAP TO REVEAL): 34 high, black with white text; 20.11: font 12 */
 .mbar.folded .mpill.on{background:transparent;color:#000}   /* option B closed: only the outline and the chosen word */
+.show .panel,.show .fab{display:none!important}
 </style>
 </head>
 <body>
@@ -363,6 +364,7 @@ body.stackMode{overflow:auto}
   </aside>
 </div>
 <script src="engines.js"></script>
+<script>window.SHOW = /[?&]show\b/.test(location.search) || location.hash === '#show'; if (window.SHOW) document.documentElement.classList.add('show');</script>
 <script src="app.js"></script>
 </body>
 </html>
