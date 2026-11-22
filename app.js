@@ -206,13 +206,14 @@ function fit() {
     if (W !== fitMem.w) { fitMem.w = W; fitMem.h = 0; fitMem.sat = satPx(); }
     fitMem.h = Math.max(fitMem.h, document.documentElement.clientHeight || innerHeight);
     const H = fitMem.h, sat = fitMem.sat;
-    let s = W / 393, c = Math.max(0, 47 - sat / s);
-    if ((852 - c) * s - H > 24 * s) s = H / (852 - c);
-    device.style.width = o.style.width = 393 * s + 'px';
-    device.style.height = o.style.height = Math.min((852 - c) * s, H) + 'px';
+    // always the full width (never scaled down): what doesn't fit in height is cut from the empty bottom edge (up to 24px), then from the top
+    const s = W / 393; let c = Math.max(0, 47 - sat / s);
+    const over = (852 - c) * s - H; if (over > 24 * s) c += over / s - 24;
+    device.style.width = o.style.width = W + 'px';
+    device.style.height = o.style.height = H + 'px';
     phone.style.transform = `translateY(${-c * s}px) scale(${s})`;
     device.style.marginTop = '';
-    o.style.marginLeft = Math.max(0, (W - 393 * s) / 2) + 'px';
+    o.style.marginLeft = '0px';
     return;
   }
   let s;
